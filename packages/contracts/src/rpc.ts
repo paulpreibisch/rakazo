@@ -747,6 +747,10 @@ export const appContract = {
   },
   runs: {
     list: oc.input(z.object({ filter: z.enum(["active", "recent"]) })).output(RunsListOutputSchema),
+    dismiss: oc
+      .input(z.object({ runIds: z.array(Id).min(1).max(200) }))
+      .output(z.object({ dismissed: z.number() })),
+    clearRecent: oc.output(z.object({ dismissed: z.number() })),
   },
   voice: {
     catalog: oc.output(z.array(VoiceCatalogEntrySchema)),

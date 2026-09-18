@@ -160,7 +160,7 @@ import {
   promptFocus,
   startOnboarding,
 } from "./onboarding.js";
-import { listSpaceRuns } from "./runs.js";
+import { clearRecentSpaceRuns, dismissSpaceRuns, listSpaceRuns } from "./runs.js";
 import { addScreenProxyCapability } from "./screen-proxy.js";
 import { querySpaceSearch } from "./search.js";
 import { withSerializableRetry } from "./serializable-retry.js";
@@ -4575,6 +4575,12 @@ export function createRouter(deps: RouterDeps) {
       list: authed.runs.list.handler(async ({ context, input }) => ({
         runs: await listSpaceRuns(deps.prisma, context.actor, input.filter),
       })),
+      dismiss: authed.runs.dismiss.handler(async ({ context, input }) =>
+        dismissSpaceRuns(deps.prisma, context.actor, input.runIds),
+      ),
+      clearRecent: authed.runs.clearRecent.handler(async ({ context }) =>
+        clearRecentSpaceRuns(deps.prisma, context.actor),
+      ),
     },
     voice: {
       catalog: authed.voice.catalog.handler(async () => listVoiceCatalog()),

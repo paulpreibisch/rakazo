@@ -46,7 +46,7 @@ export async function listSpaceRuns(
       bot: { archivedAt: null },
       ...(filter === "active"
         ? { status: { in: [...ACTIVE_RUN_STATUSES] } }
-        : { status: { in: [...TERMINAL_STATUSES] } }),
+        : { status: { in: [...TERMINAL_STATUSES] }, dismissedAt: null }),
     },
     include: {
       bot: { select: { name: true, archivedAt: true, notifyOnFinish: true } },
@@ -86,4 +86,43 @@ export async function listSpaceRuns(
       : row.updatedAt
     ).toISOString(),
   }));
+}
+
+/** Hides the named terminal runs from the Recent feed. Never touches the run,
+ * thread or messages — only runs this actor owns are affected. Active runs
+ * are excluded so an in-flight run cannot be hidden out from under its owner. */
+export async function dismissSpaceRuns(
+  prisma: PrismaClient,
+  actor: Actor,
+  runIds: string[],
+): Promise<{ dismissed: number }> {
+  if (runIds.length === 0) return { dismissed: 0 };
+  const result = await prisma.run.updateMany({
+    where: {
+      id: { in: runIds },
+      spaceId: actor.spaceId,
+      userId: actor.userId,
+      status: { in: [...TERMINAL_STATUSES] },
+      dismissedAt: null,
+    },
+    data: { dismissedAt: new Date() },
+  });
+  return { dismissed: result.count };
+}
+
+/** Clears every currently-recent run for this actor in one action ("Clear"). */
+export async function clearRecentSpaceRuns(
+  prisma: PrismaClient,
+  actor: Actor,
+): Promise<{ dismissed: number }> {
+  const result = await prisma.run.updateMany({
+    where: {
+      spaceId: actor.spaceId,
+      userId: actor.userId,
+      status: { in: [...TERMINAL_STATUSES] },
+      dismissedAt: null,
+    },
+    data: { dismissedAt: new Date() },
+  });
+  return { dismissed: result.count };
 }

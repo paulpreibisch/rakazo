@@ -583,6 +583,7 @@ model Run {
   botOutcomeReturnedAt DateTime?
   messagingMirroredAt  DateTime?
   teamChatMirroredAt   DateTime?
+  dismissedAt          DateTime?
   createdAt            DateTime         @default(now())
   updatedAt            DateTime         @updatedAt
   attempts             Attempt[]
@@ -601,6 +602,7 @@ model Run {
   @@index([sourceMessageId])
   @@index([threadId, status, createdAt])
   @@index([routineId])
+  @@index([spaceId, userId, status, dismissedAt])
   @@map("runs")
 }
 
